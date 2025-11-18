@@ -1,0 +1,44 @@
+-- Create tables for pet adoption platform
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  phone VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pets (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  breed VARCHAR(100) NOT NULL,
+  age INT,
+  gender VARCHAR(20),
+  weight VARCHAR(50),
+  color VARCHAR(100),
+  description TEXT,
+  image_url VARCHAR(500),
+  vaccinated BOOLEAN DEFAULT FALSE,
+  neutered BOOLEAN DEFAULT FALSE,
+  adoption_fee DECIMAL(10, 2),
+  status VARCHAR(50) DEFAULT 'available',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS adoption_applications (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  pet_id INT NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
+  status VARCHAR(50) DEFAULT 'pending',
+  application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS admin_users (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(50) DEFAULT 'admin',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
