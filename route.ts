@@ -1,54 +1,33 @@
 /**
- * ADOPTION API ROUTES (Servlet equivalent)
- * Handles adoption application operations
+ * USER REGISTRATION API ROUTE (Servlet equivalent)
+ * Handles user signup with validation
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { AdoptionService } from '@/lib/services/adoption-service';
+import { UserService } from '@/lib/services/user-service';
 
-const adoptionService = new AdoptionService();
+const userService = new UserService();
 
-/**
- * POST /api/adoptions
- * Submit adoption application
- */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { userId, petId, reason, homeType, otherPets } = body;
+    const { email, password, fullName } = body;
 
-    const application = await adoptionService.submitApplication(userId, petId, {
-      reason,
-      homeType,
-      otherPets,
+    const user = await userService.registerUser({
+      email,
+      password,
+      fullName,
     });
 
     return NextResponse.json(
-      { success: true, data: application },
+      { success: true, data: { id: user.id, email: user.email, fullName: user.fullName } },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('[API] Error submitting application:', error);
+    console.error('[API] Registration error:', error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 400 }
-    );
-  }
-}
-
-/**
- * GET /api/adoptions
- * Get all pending applications (admin)
- */
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  try {
-    const applications = await adoptionService.getPendingApplications();
-    return NextResponse.json({ success: true, data: applications });
-  } catch (error: any) {
-    console.error('[API] Error fetching applications:', error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 }
     );
   }
 }
