@@ -1,57 +1,54 @@
 /**
- * PET API ROUTES (Servlet equivalent)
- * Handles HTTP requests for pet operations
- * Pattern: Route Handler → Service → DAO → Database
+ * ADOPTION API ROUTES (Servlet equivalent)
+ * Handles adoption application operations
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PetService } from '@/lib/services/pet-service';
+import { AdoptionService } from '@/lib/services/adoption-service';
 
-const petService = new PetService();
+const adoptionService = new AdoptionService();
 
 /**
- * GET /api/pets
- * Retrieve all available pets with optional filters
+ * POST /api/adoptions
+ * Submit adoption application
  */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type') as 'dog' | 'cat' | null;
-    const minAge = searchParams.get('minAge') ? parseInt(searchParams.get('minAge')!) : undefined;
-    const maxAge = searchParams.get('maxAge') ? parseInt(searchParams.get('maxAge')!) : undefined;
-    const maxPrice = searchParams.get('maxPrice') ? parseInt(searchParams.get('maxPrice')!) : undefined;
+    const body = await request.json();
+    const { userId, petId, reason, homeType, otherPets } = body;
 
-    const pets = await petService.searchPets({
-      type: type || undefined,
-      minAge,
-      maxAge,
-      maxPrice,
+    const application = await adoptionService.submitApplication(userId, petId, {
+      reason,
+      homeType,
+      otherPets,
     });
 
-    return NextResponse.json({ success: true, data: pets });
-  } catch (error) {
-    console.error('[API] Error fetching pets:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch pets' },
-      { status: 500 }
+      { success: true, data: application },
+      { status: 201 }
+    );
+  } catch (error: any) {
+    console.error('[API] Error submitting application:', error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 400 }
     );
   }
 }
 
 /**
- * POST /api/pets
- * Create new pet listing (admin only)
+ * GET /api/adoptions
+ * Get all pending applications (admin)
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const body = await request.json();
-    const pet = await petService.createPetListing(body);
-    return NextResponse.json({ success: true, data: pet }, { status: 201 });
+    const applications = await adoptionService.getPendingApplications();
+    return NextResponse.json({ success: true, data: applications });
   } catch (error: any) {
-    console.error('[API] Error creating pet:', error);
+    console.error('[API] Error fetching applications:', error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }
